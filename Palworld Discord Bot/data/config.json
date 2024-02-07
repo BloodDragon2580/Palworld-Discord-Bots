@@ -1,0 +1,11 @@
+{
+    "PALWORLD_SERVERS": {
+        "Legion des Chaos": {
+            "RCON_HOST": "193.23.160.66",
+            "RCON_PORT": 25575,
+            "RCON_PASS": "eGHWp6k43n",
+            "SERVER_PORT": 8211,
+            "QUERY_CHANNEL": 1198637349794496672
+        }
+    }
+}

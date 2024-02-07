@@ -1,0 +1,12 @@
+# This is an example config file
+# You should duplicate this file and rename it in the same directory
+# Change all relevant fields before running the bot for the first time
+
+ip = "127.0.0.1"
+port = 25575
+password = "eGHWp6k43n"
+timeout_duration = 3
+discord_bot_token = "MTIwMTUwNzY0MzU5NzAwNDg0Mg.GeUj3j.2z_CLuwRW8nlOfClnZeB_HHznPEq0zNZDmWo4I"
+embed_footer = "by BloodyDragon"
+embed_thumbnail = "https://i.ibb.co/nRSZKZD/1705945409-poster.png"
+generic_bot_error = "Deine Anfrage konnte nicht bearbeitet werden"

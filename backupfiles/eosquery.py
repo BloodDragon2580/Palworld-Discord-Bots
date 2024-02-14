@@ -25,11 +25,11 @@ class EOSCog(commands.Cog):
     # This command is still a work in progress.
     @nextcord.slash_command(name="server", description="Query EOS for your server's status. (Experimental)")
     async def queryserver(self, interaction: nextcord.Interaction, server: str = nextcord.SlashOption(description="Select a server", autocomplete=True)):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         server = self.servers.get(server)
         if not server:
-            await interaction.followup.send(f"No server found with name: {server}")
+            await interaction.followup.send(f"No server found with name: {server}", ephemeral=True)
             return
 
         server_ip = server["RCON_HOST"]
@@ -40,7 +40,7 @@ class EOSCog(commands.Cog):
         filtered_servers = [s for s in servers_info if str(s['serverPort']) == str(server_port)]
         
         if not filtered_servers:
-            await interaction.followup.send(f"No server found with IP: {server_ip} and port: {server_port}")
+            await interaction.followup.send(f"No server found with IP: {server_ip} and port: {server_port}", ephemeral=True)
             return
 
         server_info = filtered_servers[0]

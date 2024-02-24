@@ -7,7 +7,7 @@
             "SERVER_PORT": 8211,
             "QUERY_CHANNEL": 1198637349794496672,
             "CONNECTION_CHANNEL": 1206341684653203576,
-            "WHITELIST_ENABLED": false
+            "WHITELIST_ENABLED": true
         }
     },
     "SHUTDOWN_SCHEDULE": {

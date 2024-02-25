@@ -14,5 +14,6 @@
         "enabled": false,
         "times": ["06:30", "18:30"],
         "timezone": "Europe/Berlin"
-    }
+    },
+    "STATUS_TRACKING": true
 }

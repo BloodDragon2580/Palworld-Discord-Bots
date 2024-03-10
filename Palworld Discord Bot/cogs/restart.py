@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import nextcord
 from nextcord.ext import commands, tasks
 import pytz
-from gamercon_async import GameRCON
+from gamercon_async import GameRCON, GameRCONBase64
+import base64
 
 class RestartCog(commands.Cog):
     def __init__(self, bot):
@@ -19,13 +20,31 @@ class RestartCog(commands.Cog):
             self.servers = config.get("PALWORLD_SERVERS", {})
             self.shutdown_config = config.get("SHUTDOWN_SCHEDULE", {})
             self.timezone = pytz.timezone(self.shutdown_config.get("timezone", "UTC"))
+            self.announce_channel = self.shutdown_config.get("channel", None)
+
+    def is_base64_encoded(self, s):
+        try:
+            if isinstance(s, str):
+                s = s.encode('utf-8')
+            return base64.b64encode(base64.b64decode(s)) == s
+        except Exception:
+            return False
 
     async def rcon_command(self, server_info, command):
-        try:
-            async with GameRCON(server_info["RCON_HOST"], server_info["RCON_PORT"], server_info["RCON_PASS"]) as rcon:
-                return await rcon.send(command)
-        except Exception as e:
-            return f"Error sending command: {e}"
+        async def send_rcon_command(rcon_class):
+            try:
+                async with rcon_class(server_info["RCON_HOST"], server_info["RCON_PORT"], server_info["RCON_PASS"], timeout=10) as rcon:
+                    response = await rcon.send(command)
+                    if self.is_base64_encoded(response):
+                        return None
+                    return response
+            except Exception as e:
+                return f"Error sending command: {e}"
+
+        response = await send_rcon_command(GameRCON)
+        if response is None:
+            response = await send_rcon_command(GameRCONBase64)
+        return response
 
     @tasks.loop(seconds=60)
     async def shutdown_schedule(self):
@@ -62,6 +81,19 @@ class RestartCog(commands.Cog):
         for server_name, server_info in self.servers.items():
             response = await self.rcon_command(server_info, command)
             print(f"Shutdown initiated for {server_name}: {response}")
+        await self.announce_restart()
+
+    async def announce_restart(self):
+        if self.announce_channel:
+            channel = self.bot.get_channel(self.announce_channel)
+            if channel:
+                embed = nextcord.Embed(title="Server Restart", description="The server has been restarted.", color=nextcord.Color.blurple())
+                embed.add_field(name="Restart Time", value=datetime.now(self.timezone).strftime("%Y-%m-%d %H:%M:%S"), inline=False)
+                await channel.send(embed=embed)
+            else:
+                print("Announcement channel not found.")
+        else:
+            print("Announcement channel ID not set.")
 
     @shutdown_schedule.before_loop
     async def before_shutdown_schedule(self):

@@ -3,9 +3,11 @@ import os
 import asyncio
 import nextcord
 from nextcord.ext import commands
-from gamercon_async import GameRCON
+from gamercon_async import GameRCON, GameRCONBase64
 import util.constants as constants
 import re
+import base64
+import unicodedata
 
 class PlayerInfoCog(commands.Cog):
     def __init__(self, bot):
@@ -29,14 +31,24 @@ class PlayerInfoCog(commands.Cog):
             with open(self.player_data_file, 'w') as file:
                 json.dump({}, file)
 
+    def is_base64_encoded(self, s):
+        try:
+            if isinstance(s, str):
+                s = s.encode('utf-8')
+            return base64.b64encode(base64.b64decode(s)) == s
+        except Exception:
+            return False
+
     async def run_showplayers_command(self, server):
         try:
-            async with GameRCON(server["RCON_HOST"], server["RCON_PORT"], server["RCON_PASS"], timeout=10) as pc:
-                response = await asyncio.wait_for(pc.send("ShowPlayers"), timeout=10.0)
+            async with GameRCON(server["RCON_HOST"], server["RCON_PORT"], server["RCON_PASS"], timeout=10) as rcon:
+                response = await rcon.send("ShowPlayers")
+                if self.is_base64_encoded(response):
+                    async with GameRCONBase64(server["RCON_HOST"], server["RCON_PORT"], server["RCON_PASS"], timeout=10) as rcon:
+                        response = await rcon.send("ShowPlayers")
                 return response
         except Exception as e:
-            print(f"Error executing ShowPlayers command: {e}")
-            return None
+            print(f"Error sending command: {e}")
 
     async def update_players(self):
         while True:
@@ -70,21 +82,35 @@ class PlayerInfoCog(commands.Cog):
                         await self.kick_player(server, steamid)
                         print(f"Player {steamid} not on whitelist, kicked.")
 
-    async def kick_player(self, server, steamid, playeruid=None):
+    async def kick_player(self, server, steamid, playeruid=None, reason="not being whitelisted"):
         try:
             async with GameRCON(server["RCON_HOST"], server["RCON_PORT"], server["RCON_PASS"], timeout=10) as pc:
                 command = f"KickPlayer {steamid}" if not playeruid else f"KickPlayer {playeruid}"
-                await asyncio.wait_for(pc.send(command), timeout=10.0)
+                response = await pc.send(command)
+                if self.is_base64_encoded(response):
+                    async with GameRCONBase64(server["RCON_HOST"], server["RCON_PORT"], server["RCON_PASS"], timeout=10) as pc_base64:
+                        response = await pc_base64.send(command)
+                
+                # Announcement part
+                if "CONNECTION_CHANNEL" in server:
+                    announcement_channel_id = server["CONNECTION_CHANNEL"]
+                    channel = self.bot.get_channel(announcement_channel_id)
+                    if channel:
+                        # message = f"Player {steamid if steamid else playeruid} kicked for {reason}."
+                        embed = nextcord.Embed(title=f"Whitelist Check", description=f"Player `{steamid if steamid else playeruid}` kicked for {reason}", color=nextcord.Color.green())
+                        await channel.send(embed=embed)
+                return response
         except Exception as e:
             print(f"Error kicking player {steamid if steamid else playeruid}: {e}")
+
 
     # Check if a SteamID is valid
     def is_valid_steamid(self, steamid):
         return bool(re.match(r'^7656119[0-9]{10}$', steamid))
 
     # Sanitize data to remove non-ascii characters
-    def sanitize_data(self, data):
-        return re.sub(r'[^\x00-\x7F]+', '', data).strip()
+    #def sanitize_data(self, data):
+    #    return re.sub(r'[^\x00-\x7F]+', '', data).strip()
     
     def process_and_save_player_data(self, server_name, data):
         if not data.strip():
@@ -98,12 +124,13 @@ class PlayerInfoCog(commands.Cog):
             if line.strip():
                 parts = line.split(',')
                 if len(parts) == 3:
-                    name, playeruid, steamid = parts
-                    steamid = self.sanitize_data(steamid)
-                    if not self.is_valid_steamid(steamid):
+                    name, playeruid, steamid = [part.strip() for part in parts]
+
+                    if not self.is_valid_steamid(steamid) or not playeruid:
                         continue
                     player_info = existing_players.get(steamid, {})
-                    player_info.update({"name": self.sanitize_data(name), "playeruid": playeruid, "whitelist": player_info.get("whitelist", False)})
+
+                    player_info.update({"name": name, "playeruid": playeruid, "whitelist": player_info.get("whitelist", False)})
                     existing_players[steamid] = player_info
 
         with open(self.player_data_file, 'w') as file:

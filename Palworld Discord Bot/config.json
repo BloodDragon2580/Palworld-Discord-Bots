@@ -1,7 +1,7 @@
 {
     "PALWORLD_SERVERS": {
         "[DE] Legion des Chaos [24/7]": {
-            "RCON_HOST": "193.23.160.66",
+            "RCON_HOST": "87.237.54.37",
             "RCON_PORT": 25575,
             "RCON_PASS": "eGHWp6k43n",
             "SERVER_PORT": 8211,

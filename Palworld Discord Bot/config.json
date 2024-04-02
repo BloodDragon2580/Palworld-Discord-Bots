@@ -18,7 +18,7 @@
         "channel": 1206341684653203576
     },
     "STATUS_TRACKING": true,
-    "PALGUARD_ACTIVE": false,
+    "PALGUARD_ACTIVE": true,
     "ECONOMY_SETTINGS": {
         "enabled": true,
         "currency": "Points",

@@ -124,7 +124,7 @@ class EconomyCog(commands.Cog):
             description=f"You have {str(points)} {self.currency} in your account.",
             color=nextcord.Color.blurple(),
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @nextcord.slash_command(name="profile", description="Check your profile.")
     async def profile(self, interaction: nextcord.Interaction):
@@ -140,7 +140,7 @@ class EconomyCog(commands.Cog):
         embed.add_field(name=f"{self.currency}", value=str(points), inline=False)
         if steam_id:
             embed.add_field(name="Steam ID", value=f"||{steam_id}||", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # Invite Leaderboard
     @nextcord.slash_command(
@@ -225,7 +225,7 @@ class EconomyCog(commands.Cog):
         embed = nextcord.Embed(
             title="Work", description=desc_text, color=nextcord.Color.blurple()
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         self.work_cooldown[user_id] = now
 
     # Daily Command
@@ -263,7 +263,7 @@ class EconomyCog(commands.Cog):
             description=f"Claimed {daily_points} {self.currency}.",
             color=nextcord.Color.blurple(),
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         self.daily_cooldown[user_id] = now
 
 def setup(bot):

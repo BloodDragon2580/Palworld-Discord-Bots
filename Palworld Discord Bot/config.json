@@ -12,15 +12,15 @@
         }
     },
     "SHUTDOWN_SCHEDULE": {
-        "enabled": false,
-        "times": ["06:30", "18:30"],
+        "enabled": true,
+        "times": ["05:00", "10:00", "15:00", "20:00", "01:00"],
         "timezone": "Europe/Berlin",
         "channel": 1206341684653203576
     },
     "STATUS_TRACKING": true,
-    "PALGUARD_ACTIVE": true,
+    "PALGUARD_ACTIVE": false,
     "ECONOMY_SETTINGS": {
-        "enabled": true,
+        "enabled": false,
         "currency": "Points",
         "invite_reward": 100,
         "work_reward": [20, 50],

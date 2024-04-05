@@ -18,9 +18,9 @@
         "channel": 1206341684653203576
     },
     "STATUS_TRACKING": true,
-    "PALGUARD_ACTIVE": false,
+    "PALGUARD_ACTIVE": true,
     "ECONOMY_SETTINGS": {
-        "enabled": false,
+        "enabled": true,
         "currency": "Points",
         "invite_reward": 100,
         "work_reward": [20, 50],

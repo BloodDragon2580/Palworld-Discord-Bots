@@ -90,7 +90,7 @@ class RestartCog(commands.Cog):
                 embed = nextcord.Embed(
                     title="Server Restart",
                     description=f"The {server_name} server has been restarted at {timestamp_desc}.",
-                    color=nextcord.Color.blurple(),
+                    color=nextcord.Color.gold(),
                 )
                 embed.set_footer(text=f"Time: {timestamp}")
                 await channel.send(embed=embed)

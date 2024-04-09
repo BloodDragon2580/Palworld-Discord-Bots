@@ -29,6 +29,10 @@
             "Deine Pals haben die Eindringlinge abgeschlachtet und {earned_points} {currency} verdient!",
             "Anubis ist im Whirlpool auf {earned_points} {currency} gestoßen!",
             "Du hast Munition hergestellt und {earned_points} {currency} verdient."
-        ]
+        ],
+        "vote_enabled": false,
+        "vote_slug": "server_slug",
+        "vote_apikey": "api_key",
+        "vote_reward": 100
     }
 }

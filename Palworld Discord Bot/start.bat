@@ -1,3 +1,3 @@
 @echo off
-python C:\PalworldBot\palworld-bot\main.py %*
+python C:\palbot\main.py %*
 pause

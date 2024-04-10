@@ -8,7 +8,7 @@
             "SERVER_SLOTS": 16,
             "QUERY_CHANNEL": 1198637349794496672,
             "CONNECTION_CHANNEL": 1206341684653203576,
-            "WHITELIST_ENABLED": true
+            "WHITELIST_ENABLED": false
         }
     },
     "SHUTDOWN_SCHEDULE": {

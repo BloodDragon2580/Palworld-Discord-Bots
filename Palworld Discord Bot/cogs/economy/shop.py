@@ -18,7 +18,7 @@ class ShopView(View):
     async def generate_shop_embed(self):
         embed = nextcord.Embed(
             title="Shop Items",
-            description="Welcome to the shop! Please ensure you're connected to the palworld server before making a purchase.",
+            description="Willkommen im Shop! Bitte stelle sicher, dass du mit dem Palworld-Server verbunden bist, bevor du einen Kauf tätigst.",
             color=nextcord.Color.blue(),
         )
         item_names = list(self.shop_items.keys())
@@ -30,22 +30,22 @@ class ShopView(View):
             embed.add_field(
                 name=item_name,
                 value=f"{item_info['description']}\n"
-                      f"**Price:** {item_info['price']} {self.currency}",
+                      f"**Preis:** {item_info['price']} {self.currency}",
                 inline=False,
             )
         embed.set_footer(
-            text=f"{constants.FOOTER_TEXT}: Page {self.current_page + 1}",
+            text=f"{constants.FOOTER_TEXT}: Seite {self.current_page + 1}",
             icon_url=constants.FOOTER_IMAGE,
         )
         return embed
 
-    @nextcord.ui.button(label="Previous", style=nextcord.ButtonStyle.blurple)
+    @nextcord.ui.button(label="Vorherig", style=nextcord.ButtonStyle.blurple)
     async def previous_button_callback(self, button, interaction):
         if self.current_page > 0:
             self.current_page -= 1
             await self.update_shop_message(interaction)
 
-    @nextcord.ui.button(label="Next", style=nextcord.ButtonStyle.blurple)
+    @nextcord.ui.button(label="Nächste", style=nextcord.ButtonStyle.blurple)
     async def next_button_callback(self, button, interaction):
         if (self.current_page + 1) * 5 < len(self.shop_items):
             self.current_page += 1
@@ -90,21 +90,21 @@ class ShopCog(commands.Cog):
     async def shop(self, _interaction: nextcord.Interaction):
         pass
 
-    @shop.subcommand(name="menu", description="Displays available items in the shop.")
+    @shop.subcommand(name="menu", description="Zeigt verfügbare Artikel im Shop an.")
     async def menu(self, interaction: nextcord.Interaction):
         view = ShopView(self.shop_items, self.currency)
         embed = await view.generate_shop_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @shop.subcommand(name="redeem", description="Redeem your points for a shop item.")
+    @shop.subcommand(name="redeem", description="Löse deine Punkte gegen einen Shop-Artikel ein.")
     async def redeem(
         self,
         interaction: nextcord.Interaction,
         item_name: str = nextcord.SlashOption(
-            description="The name of the item to redeem.", autocomplete=True
+            description="Der Name des einzulösenden Artikels.", autocomplete=True
         ),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description="Wähle einen Server", autocomplete=True
         ),
     ):
         await interaction.response.defer()
@@ -114,7 +114,7 @@ class ShopCog(commands.Cog):
         data = get_points(user_id, user_name)
         if not data:
             await interaction.followup.send(
-                "There was an error retrieving your data.", ephemeral=True
+                "Beim Abrufen deiner Daten ist ein Fehler aufgetreten.", ephemeral=True
             )
             return
 
@@ -122,24 +122,24 @@ class ShopCog(commands.Cog):
         steam_id = get_steam_id(user_id)
 
         if steam_id is None:
-            await interaction.followup.send("No Steam ID linked.", ephemeral=True)
+            await interaction.followup.send("Keine Steam-ID verknüpft.", ephemeral=True)
             return
 
         item = self.shop_items.get(item_name)
         if not item:
-            await interaction.followup.send("Item not found.", ephemeral=True)
+            await interaction.followup.send("Artikel nicht gefunden.", ephemeral=True)
             return
 
         # Added price check so that items with a price of 0 cannot be redeemed
         if item["price"] <= 0:
             await interaction.followup.send(
-                "This item cannot be redeemed.", ephemeral=True
+                "Dieser Artikel kann nicht gekauft werden.", ephemeral=True
             )
             return
 
         if points < item["price"]:
             await interaction.followup.send(
-                f"You do not have enough {self.currency} to redeem this item.",
+                f"Du verfügst nicht über genügend {self.currency}, um diesen Artikel zu kaufen.",
                 ephemeral=True,
             )
             return
@@ -154,7 +154,7 @@ class ShopCog(commands.Cog):
 
         embed = nextcord.Embed(
             title=f"Redeemed {item_name}",
-            description=f"Successfully redeemed {item_name} for {item['price']} {self.currency} on server {server}. You now have {new_points} {self.currency} left.",
+            description=f"{item_name} erfolgreich für {item['price']} {self.currency} auf dem Server {server} eingelöst. Du hast jetzt noch {new_points} {self.currency} übrig.",
             color=nextcord.Color.green(),
         )
         await interaction.followup.send(embed=embed, ephemeral=True)

@@ -82,7 +82,7 @@ class QueryCog(commands.Cog):
                         inline=False,
                     )
                     embed.add_field(
-                        name="Connection Info",
+                        name="Verbindungsinformationen",
                         value=f"```{server_config['RCON_HOST']}:{server_config['SERVER_PORT']}```",
                         inline=False,
                     )
@@ -92,12 +92,12 @@ class QueryCog(commands.Cog):
 
                     players_chunks = list(self.split_players(players, 11))
                     players_embed = nextcord.Embed(
-                        title=f"Players Online", color=nextcord.Color.blue()
+                        title=f"Spieler Online", color=nextcord.Color.blue()
                     )
 
                     for chunk in players_chunks:
                         players_list = (
-                            "\n".join(chunk) if chunk else "No players online."
+                            "\n".join(chunk) if chunk else "Keine Spieler Online."
                         )
                         players_embed.add_field(
                             name="\u200b", value=players_list, inline=True

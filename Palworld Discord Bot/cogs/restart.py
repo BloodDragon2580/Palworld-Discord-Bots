@@ -44,13 +44,13 @@ class RestartCog(commands.Cog):
             time_until_shutdown = (shutdown_datetime_local - now_local).total_seconds()
 
             if 300 <= time_until_shutdown < 360:
-                await self.broadcast_warning("Server restart in 5 minutes")
+                await self.broadcast_warning("Server neustart in 5 Minuten.")
             elif 180 <= time_until_shutdown < 240:
-                await self.broadcast_warning("Server restart in 3 minutes")
+                await self.broadcast_warning("Server neustart in 3 Minuten.")
             elif 120 <= time_until_shutdown < 180:
                 await self.save_server_state()
             elif 60 <= time_until_shutdown < 120:
-                await self.initiate_shutdown("Shutdown 30 Server restart in 30 seconds.")
+                await self.initiate_shutdown("Shutdown 30 Server neustart in 30 sekunden.")
 
     async def broadcast_warning(self, message):
         for server_name in self.servers:
@@ -88,11 +88,11 @@ class RestartCog(commands.Cog):
                 timestamp = now.strftime("%m-%d-%Y %H:%M:%S")
                 timestamp_desc = now.strftime("%I:%M %p")
                 embed = nextcord.Embed(
-                    title="Server Restart",
-                    description=f"The {server_name} server has been restarted at {timestamp_desc}.",
+                    title="Server Neustart",
+                    description=f"Der {server_name} Server wurde um {timestamp_desc}.",
                     color=nextcord.Color.gold(),
                 )
-                embed.set_footer(text=f"Time: {timestamp}")
+                embed.set_footer(text=f"Zeit: {timestamp}")
                 await channel.send(embed=embed)
             else:
                 print("Announcement channel not found.")

@@ -74,11 +74,11 @@ class ConnectCog(commands.Cog):
             now = datetime.datetime.now()
             timestamp = now.strftime("%m-%d-%Y at %I:%M:%S %p")
             embed = nextcord.Embed(
-                title="Player Joined",
-                description=f"Player joined {server_name}: {player_name} (SteamID: {steamid})",
-                color=nextcord.Color.blurple(),
+                title="Spieler ist dem Server Beigetreten",
+                description=f"Spieler betritt {server_name}: {player_name} (SteamID: {steamid})",
+                color=nextcord.Color.green(),
             )
-            embed.set_footer(text=f"Time: {timestamp}")
+            embed.set_footer(text=f"Zeit: {timestamp}")
             await channel.send(embed=embed)
 
     async def announce_player_leave(self, server_name, player_name, steamid):
@@ -88,11 +88,11 @@ class ConnectCog(commands.Cog):
             now = datetime.datetime.now()
             timestamp = now.strftime("%m-%d-%Y at %I:%M:%S %p")
             embed = nextcord.Embed(
-                title="Player Left",
-                description=f"Player left {server_name}: {player_name} (SteamID: {steamid})",
+                title="Spieler verlässt den Server",
+                description=f"Spieler verlässt {server_name}: {player_name} (SteamID: {steamid})",
                 color=nextcord.Color.red(),
             )
-            embed.set_footer(text=f"Time: {timestamp}")
+            embed.set_footer(text=f"Zeit: {timestamp}")
             await channel.send(embed=embed)
 
 def setup(bot):

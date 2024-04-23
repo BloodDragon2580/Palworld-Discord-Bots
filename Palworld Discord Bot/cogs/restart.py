@@ -89,7 +89,7 @@ class RestartCog(commands.Cog):
                 timestamp_desc = now.strftime("%I:%M %p")
                 embed = nextcord.Embed(
                     title="Server Neustart",
-                    description=f"Der {server_name} Server wurde um {timestamp_desc}.",
+                    description=f"Der {server_name} Server wurde um {timestamp_desc} neugestartet.",
                     color=nextcord.Color.gold(),
                 )
                 embed.set_footer(text=f"Zeit: {timestamp}")

@@ -54,7 +54,7 @@ class EconomyCog(commands.Cog):
 
     # Economy Info
     @nextcord.slash_command(
-        name="economyinfo", description="Display economy information."
+        name="economyinfo", description="Economy informationen anzeigen."
     )
     async def economyinfo(self, interaction: nextcord.Interaction):
         def format_time(seconds):
@@ -132,7 +132,7 @@ class EconomyCog(commands.Cog):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @nextcord.slash_command(name="balance", description="Check your own points.")
+    @nextcord.slash_command(name="balance", description="Überprüfe deine Punkte.")
     async def balance(self, interaction: nextcord.Interaction):
         user_id = str(interaction.user.id)
         user_name = interaction.user.display_name
@@ -180,7 +180,7 @@ class EconomyCog(commands.Cog):
 
     # Help Command
     @nextcord.slash_command(
-        name="economyhelp", description="Display help for the economy commands."
+        name="economyhelp", description="Hilfe für die Economy-Befehle anzeigen."
     )
     async def economyhelp(self, interaction: nextcord.Interaction):
         currency = self.currency
@@ -195,7 +195,7 @@ class EconomyCog(commands.Cog):
             f"`/daily` - Forder deine tägliche {currency} an.\n"
             f"`/leaderboard` - Zeige die Top-Bestenliste für {currency} an.\n"
             f"`/topinvites` - Zeige die Bestenliste der besten Einladungen an.\n"
-            f"`/economyinfo` - Wirtschaftsinformationen anzeigen.\n"
+            f"`/economyinfo` - Economy informationen anzeigen.\n"
             f"`/shop menu` - Zeigt verfügbare Artikel im Shop an.\n"
             f"`/shop redeem` - Löse deine {currency} gegen einen Shop-Artikel ein."
             f"`/claimreward` - Forder deine Belohnung für deine Abstimmung an!\n",
@@ -249,7 +249,7 @@ class EconomyCog(commands.Cog):
         self.work_cooldown[user_id] = now
 
     # Daily Command
-    @nextcord.slash_command(name="daily", description="Claim your daily points.")
+    @nextcord.slash_command(name="daily", description="Fordere deine Tagespunkte an.")
     async def daily(self, interaction: nextcord.Interaction):
         user_id = str(interaction.user.id)
         now = datetime.now()

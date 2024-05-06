@@ -29,70 +29,70 @@ class EconomyManageCog(commands.Cog):
     async def economyset(self, _interaction: nextcord.Interaction):
         pass
 
-    @economyset.subcommand(name="addpoints", description="Add points to a user.")
+    @economyset.subcommand(name="addpoints", description="Füge einem Benutzer Punkte hinzu.")
     async def addpoints(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption(description="Select the user"),
-        points: int = nextcord.SlashOption(description="How many points to add"),
+        user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
+        points: int = nextcord.SlashOption(description="Wie viele Punkte sollen hinzugefügt werden?"),
     ):
         user_id = str(user.id)
         user_name = user.display_name
         add_points(user_id, user_name, points)
         emebd = nextcord.Embed(
-            title=f"Added {self.currency}",
-            description=f"Added {points} {self.currency} to {user_name}.",
+            title=f"{self.currency} hinzugefügt",
+            description=f"{points} {self.currency} zu {user_name} hinzugefügt.",
             color=nextcord.Color.blurple(),
         )
         await interaction.response.send_message(embed=emebd, ephemeral=True)
 
-    @economyset.subcommand(name="checkpoints", description="Check a user's points.")
+    @economyset.subcommand(name="checkpoints", description="Überprüfe die Punkte eines Benutzers.")
     async def checkpoints(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption(description="Select the user"),
+        user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
     ):
         user_id = str(user.id)
         user_name = user.display_name
         user_name, points = get_points(user_id, user_name)
 
         embed = nextcord.Embed(
-            title=f"Check {self.currency}",
-            description=f"{user_name} has {points} {self.currency}.",
+            title=f"Überprüfe {self.currency}",
+            description=f"{user_name} hat {points} {self.currency}.",
             color=nextcord.Color.blurple(),
         )
         if user_name:
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
-            await interaction.response.send_message("User not found.", ephemeral=True)
+            await interaction.response.send_message("Benutzer nicht gefunden.", ephemeral=True)
 
-    @economyset.subcommand(name="setpoints", description="Set a user's points.")
+    @economyset.subcommand(name="setpoints", description="Lege die Punkte eines Benutzers fest.")
     async def setpoints(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption(description="Select the user"),
-        points: int = nextcord.SlashOption(description="How many points to set"),
+        user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
+        points: int = nextcord.SlashOption(description="Wie viele Punkte sollen gesetzt werden?"),
     ):
         user_id = str(user.id)
         user_name = user.display_name
         set_points(user_id, user_name, points)
         embed = nextcord.Embed(
-            title=f"Set {self.currency}",
-            description=f"Set {user_name}'s {self.currency} to {points}.",
+            title=f"{self.currency} festlegen",
+            description=f"Setze die {self.currency} von {user_name} auf {points}.",
             color=nextcord.Color.blurple(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @economyset.subcommand(
-        name="forcesteam", description="Force link a user's Steam account."
+        name="forcesteam", description="Erzwinge die Verknüpfung des Steam-Kontos eines Benutzers."
     )
     async def force_steam(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption(description="Select the user"),
-        steam_id: str = nextcord.SlashOption(description="Enter the user's Steam ID"),
+        user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
+        steam_id: str = nextcord.SlashOption(description="Gebe die Steam-ID des Benutzers ein"),
         verification_code: str = nextcord.SlashOption(
-            description="Enter the verification code"
+            description="Gebe den Bestätigungscode ein"
         ),
     ):
         user_id = str(user.id)
@@ -102,38 +102,38 @@ class EconomyManageCog(commands.Cog):
         await update_discord_username(user_id, user_name)
 
         await interaction.response.send_message(
-            f"Linked Steam account {steam_id} to {user.display_name}.", ephemeral=True
+            f"Steam-Konto {steam_id} mit {user.display_name} verknüpft.", ephemeral=True
         )
 
     @economyset.subcommand(
-        name="removepoints", description="Remove points from a user."
+        name="removepoints", description="Punkte von einem Benutzer entfernen."
     )
     async def removepoints(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption(description="Select the user"),
-        points: int = nextcord.SlashOption(description="How many points to remove"),
+        user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
+        points: int = nextcord.SlashOption(description="Wie viele Punkte sollen entfernt werden?"),
     ):
         user_id = str(user.id)
         user_name = user.display_name
         user_name, current_points = get_points(user_id, user_name)
         if current_points < points:
             await interaction.response.send_message(
-                f"{user_name} does not have enough {self.currency} to remove.",
+                f"{user_name} verfügt nicht über genügend {self.currency} zum Entfernen.",
                 ephemeral=True,
             )
             return
         new_points = current_points - points
         set_points(user_id, user_name, new_points)
         embed = nextcord.Embed(
-            title=f"Removed {self.currency}",
-            description=f"Removed {points} {self.currency} from {user_name}.",
+            title=f"{self.currency} entfernt",
+            description=f"{points} {self.currency} von {user_name} entfernt.",
             color=nextcord.Color.blurple(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @economyset.subcommand(
-        name="help", description="Display help for the economy management commands."
+        name="help", description="Hilfe für die Economy befehle anzeigen."
     )
     async def help(self, interaction: nextcord.Interaction):
         embed = nextcord.Embed(
@@ -141,11 +141,11 @@ class EconomyManageCog(commands.Cog):
         )
         embed.add_field(
             name="Commands",
-            value="`/economyset addpoints` - Add points to a user.\n"
-            "`/economyset checkpoints` - Check a user's points.\n"
-            "`/economyset setpoints` - Set a user's points.\n"
-            "`/economyset removepoints` - Remove points from a user.\n"
-            "`/economyset forcesteam` - Force link a user's Steam account.",
+            value="`/economyset addpoints` - Einem Benutzer Punkte hinzufügen.\n"
+            "`/economyset checkpoints` - Überprüfe die Punkte eines Benutzers.\n"
+            "`/economyset setpoints` - Lege die Punkte eines Benutzers fest.\n"
+            "`/economyset removepoints` - Punkte von einem Benutzer entfernen.\n"
+            "`/economyset forcesteam` - Erzwinge die Verknüpfung des Steam-Kontos eines Benutzers.",
             inline=False,
         )
         await interaction.response.send_message(embed=embed)

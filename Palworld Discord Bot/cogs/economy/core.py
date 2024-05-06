@@ -34,7 +34,23 @@ class EconomyCog(commands.Cog):
         )
         self.work_min, self.work_max = self.work_reward
         self.work_timer = self.economy_config.get("work_timer", 60)
+        self.daily_reward = self.economy_config.get("daily_reward", 100)
         self.daily_timer = self.economy_config.get("daily_timer", 86400)
+        
+    def get_bonus_percentage(self, user):
+        roles = [role.name for role in user.roles]
+        max_bonus = 0
+        for role in roles:
+            if role in self.economy_config.get("role_bonuses", {}):
+                role_bonus = self.economy_config["role_bonuses"][role]
+                if role_bonus > max_bonus:
+                    max_bonus = role_bonus
+        return max_bonus
+
+    async def apply_bonus(self, base_points, user):
+        bonus_percentage = self.get_bonus_percentage(user)
+        bonus_points = int(base_points * (bonus_percentage / 100.0))
+        return base_points + bonus_points
 
     # Economy Info
     @nextcord.slash_command(
@@ -67,7 +83,7 @@ class EconomyCog(commands.Cog):
 
     # Leaderboard for Points
     @nextcord.slash_command(
-        name="leaderboard", description="Display the top points leaderboard."
+        name="leaderboard", description="Zeige die Bestenliste mit den höchsten Punkten an."
     )
     async def toppoints(self, interaction: nextcord.Interaction):
         top_points = get_top_points()
@@ -84,15 +100,15 @@ class EconomyCog(commands.Cog):
 
     # Transfer Points
     @nextcord.slash_command(
-        name="transfer", description="Transfer points to another user."
+        name="transfer", description="Übertrage Punkte an einen anderen Benutzer."
     )
     async def transferpoints(
         self,
         interaction: nextcord.Interaction,
         recipient: nextcord.Member = nextcord.SlashOption(
-            description="Select the recipient"
+            description="Wähle ein Empfänger aus"
         ),
-        points: int = nextcord.SlashOption(description="How many points to transfer"),
+        points: int = nextcord.SlashOption(description="Wie viele Punkte solen übertragen werden?"),
     ):
         user_id = str(interaction.user.id)
         user_name = interaction.user.display_name
@@ -102,7 +118,7 @@ class EconomyCog(commands.Cog):
         recipient_name, recipient_points = get_points(recipient_id, recipient_name)
         if user_points < points:
             await interaction.response.send_message(
-                f"You do not have enough {self.currency} to transfer.", ephemeral=True
+                f"Du hast nicht genügend {self.currency} zum Übertragen.", ephemeral=True
             )
             return
         new_user_points = user_points - points
@@ -122,13 +138,13 @@ class EconomyCog(commands.Cog):
         user_name = interaction.user.display_name
         user_name, points = get_points(user_id, user_name)
         embed = nextcord.Embed(
-            title=f"Your {self.currency} Balance",
-            description=f"You have {str(points)} {self.currency} in your account.",
+            title=f"Dein {self.currency}-Guthaben",
+            description=f"Du hast {str(points)} {self.currency} auf deinem Konto.",
             color=nextcord.Color.blurple(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @nextcord.slash_command(name="profile", description="Check your profile.")
+    @nextcord.slash_command(name="profile", description="Überprüfe dein Profil.")
     async def profile(self, interaction: nextcord.Interaction):
         user_id = str(interaction.user.id)
         user_name = interaction.user.display_name
@@ -171,18 +187,18 @@ class EconomyCog(commands.Cog):
         embed = nextcord.Embed(title="Economy Help", color=nextcord.Color.blurple())
         embed.add_field(
             name="Commands",
-            value=f"`/setsteam` - Set your own Steam ID.\n"
-            f"`/transfer` - Transfer {currency} to another user.\n"
-            f"`/balance` - Check your own {currency}.\n"
-            f"`/profile` - Check your profile.\n"
-            f"`/work` - Earn {currency} by working.\n"
-            f"`/daily` - Claim your daily {currency}.\n"
-            f"`/leaderboard` - Display the top {currency} leaderboard.\n"
-            f"`/topinvites` - Display the top invite leaderboard.\n"
-            f"`/economyinfo` - Display economy information.\n"
-            f"`/shop menu` - Displays available items in the shop.\n"
-            f"`/shop redeem` - Redeem your {currency} for a shop item."
-            f"`/claimreward` - Claim your reward for voting!\n",
+            value=f"`/setsteam` – Legen deine Steam-ID fest.\n"
+            f"`/transfer` - {currency} an einen anderen Benutzer übertragen.\n"
+            f"`/balance` - Überprüfe deine {currency}.\n"
+            f"`/profile` - Überprüfe dein Profil.\n"
+            f"`/work` - Verdiene {currency} durch Arbeit.\n"
+            f"`/daily` - Forder deine tägliche {currency} an.\n"
+            f"`/leaderboard` - Zeige die Top-Bestenliste für {currency} an.\n"
+            f"`/topinvites` - Zeige die Bestenliste der besten Einladungen an.\n"
+            f"`/economyinfo` - Wirtschaftsinformationen anzeigen.\n"
+            f"`/shop menu` - Zeigt verfügbare Artikel im Shop an.\n"
+            f"`/shop redeem` - Löse deine {currency} gegen einen Shop-Artikel ein."
+            f"`/claimreward` - Forder deine Belohnung für deine Abstimmung an!\n",
             inline=False,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -202,7 +218,7 @@ class EconomyCog(commands.Cog):
         await update_discord_username(user_id, user_name)
 
         await interaction.response.send_message(
-            f"Linked Steam account {steam_id} to your account.", ephemeral=True
+            f"Steam-Konto {steam_id} mit deinem Konto verknüpft.", ephemeral=True
         )
 
     # Work Command
@@ -219,7 +235,8 @@ class EconomyCog(commands.Cog):
             return
         user_name = interaction.user.display_name
         user_name, points = get_points(user_id, user_name)
-        earned_points = random.randint(self.work_min, self.work_max)
+        base_points = random.randint(self.work_min, self.work_max)
+        earned_points = await self.apply_bonus(base_points, interaction.user)
         new_points = points + earned_points
         set_points(user_id, user_name, new_points)
         desc_text = random.choice(self.work_descriptions).format(
@@ -250,20 +267,21 @@ class EconomyCog(commands.Cog):
             remaining_time = "{}h {}m".format(int(hours), int(minutes))
 
             await interaction.response.send_message(
-                f"You've already claimed your daily points. Please wait {remaining_time}.",
+                f"Du hast deine Tagespunkte bereits eingefordert. Bitte warte {remaining_time}.",
                 ephemeral=True,
             )
             return
 
         user_name = interaction.user.display_name
         user_name, points = get_points(user_id, user_name)
-        daily_points = 150
-        new_points = points + daily_points
+        base_points = self.daily_reward
+        earned_points = await self.apply_bonus(base_points, interaction.user)
+        new_points = points + earned_points
         set_points(user_id, user_name, new_points)
 
         embed = nextcord.Embed(
-            title="Daily Reward",
-            description=f"Claimed {daily_points} {self.currency}.",
+            title="Tägliche Belohnung",
+            description=f"Beanspruchd {earned_points} {self.currency}.",
             color=nextcord.Color.blurple(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)

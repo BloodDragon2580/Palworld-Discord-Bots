@@ -38,7 +38,7 @@ class EconomyManageCog(commands.Cog):
     ):
         user_id = str(user.id)
         user_name = user.display_name
-        add_points(user_id, user_name, points)
+        await add_points(user_id, user_name, points)
         emebd = nextcord.Embed(
             title=f"{self.currency} hinzugefügt",
             description=f"{points} {self.currency} zu {user_name} hinzugefügt.",
@@ -54,7 +54,7 @@ class EconomyManageCog(commands.Cog):
     ):
         user_id = str(user.id)
         user_name = user.display_name
-        user_name, points = get_points(user_id, user_name)
+        user_name, points = await get_points(user_id, user_name)
 
         embed = nextcord.Embed(
             title=f"Überprüfe {self.currency}",
@@ -75,7 +75,7 @@ class EconomyManageCog(commands.Cog):
     ):
         user_id = str(user.id)
         user_name = user.display_name
-        set_points(user_id, user_name, points)
+        await set_points(user_id, user_name, points)
         embed = nextcord.Embed(
             title=f"{self.currency} festlegen",
             description=f"Setze die {self.currency} von {user_name} auf {points}.",
@@ -91,13 +91,10 @@ class EconomyManageCog(commands.Cog):
         interaction: nextcord.Interaction,
         user: nextcord.Member = nextcord.SlashOption(description="Wähle den Benutzer aus"),
         steam_id: str = nextcord.SlashOption(description="Gebe die Steam-ID des Benutzers ein"),
-        verification_code: str = nextcord.SlashOption(
-            description="Gebe den Bestätigungscode ein"
-        ),
     ):
         user_id = str(user.id)
         user_name = user.display_name
-        await link_steam_account(user_id, steam_id, verification_code)
+        await link_steam_account(user_id, steam_id)
 
         await update_discord_username(user_id, user_name)
 
@@ -116,7 +113,7 @@ class EconomyManageCog(commands.Cog):
     ):
         user_id = str(user.id)
         user_name = user.display_name
-        user_name, current_points = get_points(user_id, user_name)
+        user_name, current_points = await get_points(user_id, user_name)
         if current_points < points:
             await interaction.response.send_message(
                 f"{user_name} verfügt nicht über genügend {self.currency} zum Entfernen.",
@@ -124,7 +121,7 @@ class EconomyManageCog(commands.Cog):
             )
             return
         new_points = current_points - points
-        set_points(user_id, user_name, new_points)
+        await set_points(user_id, user_name, new_points)
         embed = nextcord.Embed(
             title=f"{self.currency} entfernt",
             description=f"{points} {self.currency} von {user_name} entfernt.",

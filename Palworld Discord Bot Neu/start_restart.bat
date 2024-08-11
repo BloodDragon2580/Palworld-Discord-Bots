@@ -2,7 +2,7 @@
 echo Starte main.py...
 
 :loop
-python main.py
+python C:\PalbotNeu\main.py %*
 if %ERRORLEVEL% NEQ 0 (
     echo main.py ist abgestürzt oder wurde beendet. Neustart...
     timeout /t 5

@@ -1,9 +1,0 @@
-*.pyc
-*.json
-*.env
-*.db
-*.log
-
-/dev/*
-!gamedata/*.json
-/gamedata/kits.json

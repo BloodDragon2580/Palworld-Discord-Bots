@@ -1,0 +1,9 @@
+*.pyc
+*.json
+*.env
+*.db
+*.log
+
+/dev/*
+/cogs/palgame/*
+!gamedata/*.json

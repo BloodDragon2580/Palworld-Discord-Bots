@@ -3,11 +3,16 @@ from nextcord.ext import commands
 import utils.settings as settings
 import os
 import importlib.util
+from utils.translations import translator
+import logging
+
+logging.basicConfig(filename=os.path.join('logs', 'bot.log'), level=logging.INFO)
 
 intents = nextcord.Intents.all()
 bot = commands.Bot(
     command_prefix=settings.bot_prefix, intents=intents, help_command=None
 )
+translator.set_language(settings.bot_language)
 
 @bot.event
 async def on_ready():
@@ -48,9 +53,9 @@ async def on_application_command_error(interaction, error):
         else:
             await interaction.followup.send(f"An error occurred: {str(error)}", ephemeral=True)
     except nextcord.errors.NotFound:
-        print("Failed to send error message, interaction not found or expired.")
+        logging.error("Failed to send error message, interaction not found or expired.")
     except Exception as e:
-        print(f"Unexpected error when handling command error: {e}")
+        logging.error(f"Unexpected error when handling command error: {e}")
 
 @bot.command()
 async def ping(ctx):

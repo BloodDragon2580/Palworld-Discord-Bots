@@ -5,6 +5,7 @@ from nextcord.ext import commands
 from utils.rconutility import RconUtility
 import asyncio
 from utils.database import get_server_details, server_autocomplete
+from utils.translations import t
 
 class PalguardCog(commands.Cog):
     def __init__(self, bot):
@@ -71,7 +72,7 @@ class PalguardCog(commands.Cog):
                 "name": server_name,
                 "host": details[0],
                 "port": details[1],
-                "password": details[2]
+                "password": details[2],
             }
         return None
 
@@ -81,21 +82,23 @@ class PalguardCog(commands.Cog):
     async def palguard(self, _interaction: nextcord.Interaction):
         await self.load_servers()
 
-    @palguard.subcommand(name="reload", description="Reload server configuration.")
+    @palguard.subcommand(name="reload", description=t("PalguardCog", "reloadcfg.description"))
     async def reloadcfg(
         self,
         interaction: nextcord.Interaction,
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "reloadcfg.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "reloadcfg.server_not_found").format(server=server), ephemeral=True
+            )
             return
         response = await self.rcon_util.rcon_command(server_info, "reloadcfg")
-        await interaction.followup.send(f"**Response:** {response}")
+        await interaction.followup.send(t("PalguardCog", "reloadcfg.response").format(response=response))
 
     @reloadcfg.on_autocomplete("server")
     async def on_autocomplete_rcon(
@@ -103,35 +106,39 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_server(interaction, current)
 
-    @palguard.subcommand(description="Give a Pal to a player.")
+    @palguard.subcommand(description=t("PalguardCog", "givepal.description"))
     async def givepal(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "givepal.steamid_description")),
         palid: str = nextcord.SlashOption(
-            description="The ID of the Pal.", autocomplete=True
+            description=t("PalguardCog", "givepal.palid_description"), autocomplete=True
         ),
-        level: str = nextcord.SlashOption(description="Level of the Pal"),
+        level: str = nextcord.SlashOption(description=t("PalguardCog", "givepal.level_description")),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "givepal.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "givepal.server_not_found").format(server=server), ephemeral=True
+            )
             return
         pal_id = next((pal["id"] for pal in self.pals if pal["name"] == palid), None)
         if not pal_id:
-            await interaction.followup.send("Pal ID not found.", ephemeral=True)
+            await interaction.followup.send(t("PalguardCog", "givepal.pal_not_found"), ephemeral=True)
             return
         asyncio.create_task(
-            self.rcon_util.rcon_command(server_info, f"givepal {steamid} {pal_id} {level}")
+            self.rcon_util.rcon_command(
+                server_info, f"givepal {steamid} {pal_id} {level}"
+            )
         )
         embed = nextcord.Embed(
-            title=f"Palguard Pal - {server}", color=nextcord.Color.blue()
+            title=t("PalguardCog", "givepal.title").format(server=server), color=nextcord.Color.blue()
         )
-        embed.description = f"Giving {palid} to {steamid}."
+        embed.description = t("PalguardCog", "givepal.description").format(palid=palid, steamid=steamid)
         await interaction.followup.send(embed=embed)
 
     @givepal.on_autocomplete("server")
@@ -146,37 +153,41 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_palid(interaction, current)
 
-    @palguard.subcommand(description="Give an item to a player.")
+    @palguard.subcommand(description=t("PalguardCog", "giveitem.description"))
     async def giveitem(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "giveitem.steamid_description")),
         itemid: str = nextcord.SlashOption(
-            description="The ID of the Item.", autocomplete=True
+            description=t("PalguardCog", "giveitem.itemid_description"), autocomplete=True
         ),
-        amount: str = nextcord.SlashOption(description="Item amount"),
+        amount: str = nextcord.SlashOption(description=t("PalguardCog", "giveitem.amount_description")),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "giveitem.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "giveitem.server_not_found").format(server=server), ephemeral=True
+            )
             return
         item_id = next(
             (item["id"] for item in self.items if item["name"] == itemid), None
         )
         if not item_id:
-            await interaction.followup.send("Item ID not found.", ephemeral=True)
+            await interaction.followup.send(t("PalguardCog", "giveitem.item_not_found"), ephemeral=True)
             return
         asyncio.create_task(
-            self.rcon_util.rcon_command(server_info, f"give {steamid} {item_id} {amount}")
+            self.rcon_util.rcon_command(
+                server_info, f"give {steamid} {item_id} {amount}"
+            )
         )
         embed = nextcord.Embed(
-            title=f"Palguard Item - {server}", color=nextcord.Color.blue()
+            title=t("PalguardCog", "giveitem.title").format(server=server), color=nextcord.Color.blue()
         )
-        embed.description = f"Giving {itemid} to {steamid}."
+        embed.description = t("PalguardCog", "giveitem.description").format(itemid=itemid, steamid=steamid)
         await interaction.followup.send(embed=embed)
 
     @giveitem.on_autocomplete("server")
@@ -190,38 +201,42 @@ class PalguardCog(commands.Cog):
         self, interaction: nextcord.Interaction, current: str
     ):
         await self.autocomplete_itemid(interaction, current)
-        
-    @palguard.subcommand(description="Delete an item from a player.")
+
+    @palguard.subcommand(description=t("PalguardCog", "delitem.description"))
     async def delitem(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "delitem.steamid_description")),
         itemid: str = nextcord.SlashOption(
-            description="The ID of the Item.", autocomplete=True
+            description=t("PalguardCog", "delitem.itemid_description"), autocomplete=True
         ),
-        amount: str = nextcord.SlashOption(description="Item amount"),
+        amount: str = nextcord.SlashOption(description=t("PalguardCog", "delitem.amount_description")),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "delitem.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "delitem.server_not_found").format(server=server), ephemeral=True
+            )
             return
         item_id = next(
             (item["id"] for item in self.items if item["name"] == itemid), None
         )
         if not item_id:
-            await interaction.followup.send("Item ID not found.", ephemeral=True)
+            await interaction.followup.send(t("PalguardCog", "delitem.item_not_found"), ephemeral=True)
             return
         asyncio.create_task(
-            self.rcon_util.rcon_command(server_info, f"delitem {steamid} {item_id} {amount}")
+            self.rcon_util.rcon_command(
+                server_info, f"delitem {steamid} {item_id} {amount}"
+            )
         )
         embed = nextcord.Embed(
-            title=f"Palguard Item - {server}", color=nextcord.Color.blue()
+            title=t("PalguardCog", "delitem.title").format(server=server), color=nextcord.Color.blue()
         )
-        embed.description = f"Deleting {itemid}x{amount} from {steamid}."
+        embed.description = t("PalguardCog", "delitem.description").format(itemid=itemid, amount=amount, steamid=steamid)
         await interaction.followup.send(embed=embed)
 
     @delitem.on_autocomplete("server")
@@ -236,28 +251,30 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_itemid(interaction, current)
 
-    @palguard.subcommand(description="Give experience to a player.")
+    @palguard.subcommand(description=t("PalguardCog", "giveexp.description"))
     async def giveexp(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
-        amount: str = nextcord.SlashOption(description="Experience amount"),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "giveexp.steamid_description")),
+        amount: str = nextcord.SlashOption(description=t("PalguardCog", "giveexp.amount_description")),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "giveexp.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "giveexp.server_not_found").format(server=server), ephemeral=True
+            )
             return
         asyncio.create_task(
             self.rcon_util.rcon_command(server_info, f"give_exp {steamid} {amount}")
         )
         embed = nextcord.Embed(
-            title=f"Palguard Experience - {server}", color=nextcord.Color.blue()
+            title=t("PalguardCog", "giveexp.title").format(server=server), color=nextcord.Color.blue()
         )
-        embed.description = f"Giving {amount} experience to {steamid}."
+        embed.description = t("PalguardCog", "giveexp.description").format(amount=amount, steamid=steamid)
         await interaction.followup.send(embed=embed)
 
     @giveexp.on_autocomplete("server")
@@ -266,34 +283,36 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_server(interaction, current)
 
-    @palguard.subcommand(description="Give an egg to a player.")
+    @palguard.subcommand(description=t("PalguardCog", "giveegg.description"))
     async def giveegg(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "giveegg.steamid_description")),
         eggid: str = nextcord.SlashOption(
-            description="The ID of the Egg.", autocomplete=True
+            description=t("PalguardCog", "giveegg.eggid_description"), autocomplete=True
         ),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "giveegg.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "giveegg.server_not_found").format(server=server), ephemeral=True
+            )
             return
         egg_id = next((egg["id"] for egg in self.eggs if egg["name"] == eggid), None)
         if not egg_id:
-            await interaction.followup.send("Egg ID not found.", ephemeral=True)
+            await interaction.followup.send(t("PalguardCog", "giveegg.egg_not_found"), ephemeral=True)
             return
         asyncio.create_task(
             self.rcon_util.rcon_command(server_info, f"giveegg {steamid} {egg_id}")
         )
         embed = nextcord.Embed(
-            title=f"Palguard Egg - {server}", color=nextcord.Color.blue()
+            title=t("PalguardCog", "giveegg.title").format(server=server), color=nextcord.Color.blue()
         )
-        embed.description = f"Giving {eggid} to {steamid}."
+        embed.description = t("PalguardCog", "giveegg.description").format(eggid=eggid, steamid=steamid)
         await interaction.followup.send(embed=embed)
 
     @giveegg.on_autocomplete("server")
@@ -308,18 +327,20 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_eggid(interaction, current)
 
-    @palguard.subcommand(name="help", description="List of Palguard commands.")
+    @palguard.subcommand(name="help", description=t("PalguardCog", "palguardhelp.description"))
     async def palguardhelp(
         self,
         interaction: nextcord.Interaction,
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "palguardhelp.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "palguardhelp.server_not_found").format(server=server), ephemeral=True
+            )
             return
         response = await self.rcon_util.rcon_command(server_info, "getrconcmds")
         await interaction.followup.send(f"{response}")
@@ -330,31 +351,125 @@ class PalguardCog(commands.Cog):
     ):
         await self.autocomplete_server(interaction, current)
 
-    @palguard.subcommand(description="Give a Lifmunk Effigy relics to a player.")
+    @palguard.subcommand(description=t("PalguardCog", "giverelic.description"))
     async def giverelic(
         self,
         interaction: nextcord.Interaction,
-        steamid: str = nextcord.SlashOption(description="SteamID/UID of the player."),
-        amount: str = nextcord.SlashOption(description="Lifmunk Effigy relic amount"),
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "giverelic.steamid_description")),
+        amount: str = nextcord.SlashOption(description=t("PalguardCog", "giverelic.amount_description")),
         server: str = nextcord.SlashOption(
-            description="Select a server", autocomplete=True
+            description=t("PalguardCog", "giverelic.server_description"), autocomplete=True
         ),
     ):
         await interaction.response.defer(ephemeral=True)
         server_info = await self.get_server_info(server)
         if not server_info:
-            await interaction.followup.send(f"Server {server} not found.", ephemeral=True)
+            await interaction.followup.send(
+                t("PalguardCog", "giverelic.server_not_found").format(server=server), ephemeral=True
+            )
             return
         asyncio.create_task(
             self.rcon_util.rcon_command(server_info, f"give_relic {steamid} {amount}")
         )
         embed = nextcord.Embed(
-            title=f"Palguard Relic - {server}", color=nextcord.Color.blurple()
+            title=t("PalguardCog", "giverelic.title").format(server=server), color=nextcord.Color.blurple()
         )
-        embed.description = f"Giving {amount} Lifmunk Effigy relics to {steamid}."
+        embed.description = t("PalguardCog", "giverelic.description").format(amount=amount, steamid=steamid)
+        await interaction.followup.send(embed=embed)
+
+    @giverelic.on_autocomplete("server")
+    async def on_autocomplete_rcon(
+        self, interaction: nextcord.Interaction, current: str
+    ):
+        await self.autocomplete_server(interaction, current)
+
+    # Palguard Whitelist Functions
+    @nextcord.slash_command(name="whitelist", description=t("PalguardCog", "whitelist.description"))
+    async def whitelist(self, interaction: nextcord.Interaction):
+        pass
+
+    @whitelist.subcommand(name="add", description=t("PalguardCog", "whitelistadd.description"))
+    async def whitelistadd(
+        self,
+        interaction: nextcord.Interaction,
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "whitelistadd.steamid_description")),
+        server: str = nextcord.SlashOption(
+            description=t("PalguardCog", "whitelistadd.server_description"), autocomplete=True
+        ),
+    ):
+        await interaction.response.defer(ephemeral=True)
+        server_info = await self.get_server_info(server)
+        if not server_info:
+            await interaction.followup.send(
+                t("PalguardCog", "whitelistadd.server_not_found").format(server=server), ephemeral=True
+            )
+            return
+        asyncio.create_task(
+            self.rcon_util.rcon_command(server_info, f"whitelist_add {steamid}")
+        )
+        embed = nextcord.Embed(
+            title=t("PalguardCog", "whitelistadd.title").format(server=server), color=nextcord.Color.green()
+        )
+        embed.description = t("PalguardCog", "whitelistadd.description").format(steamid=steamid)
+        await interaction.followup.send(embed=embed)
+
+    @whitelistadd.on_autocomplete("server")
+    async def on_autocomplete_rcon(
+        self, interaction: nextcord.Interaction, current: str
+    ):
+        await self.autocomplete_server(interaction, current)
+
+    @whitelist.subcommand(name="remove", description=t("PalguardCog", "whitelistremove.description"))
+    async def whitelistremove(
+        self,
+        interaction: nextcord.Interaction,
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "whitelistremove.steamid_description")),
+        server: str = nextcord.SlashOption(
+            description=t("PalguardCog", "whitelistremove.server_description"), autocomplete=True
+        ),
+    ):
+        await interaction.response.defer(ephemeral=True)
+        server_info = await self.get_server_info(server)
+        if not server_info:
+            await interaction.followup.send(
+                t("PalguardCog", "whitelistremove.server_not_found").format(server=server), ephemeral=True
+            )
+            return
+        asyncio.create_task(
+            self.rcon_util.rcon_command(server_info, f"whitelist_remove {steamid}")
+        )
+        embed = nextcord.Embed(
+            title=t("PalguardCog", "whitelistremove.title").format(server=server), color=nextcord.Color.red()
+        )
+        embed.description = t("PalguardCog", "whitelistremove.description").format(steamid=steamid)
         await interaction.followup.send(embed=embed)
         
-    @giverelic.on_autocomplete("server")
+    @whitelistremove.on_autocomplete("server")
+    async def on_autocomplete_rcon(
+        self, interaction: nextcord.Interaction, current: str
+    ):
+        await self.autocomplete_server(interaction, current)
+        
+    # whitelist_get
+    @whitelist.subcommand(name="get", description=t("PalguardCog", "whitelistget.description"))
+    async def whitelistget(
+        self,
+        interaction: nextcord.Interaction,
+        server: str = nextcord.SlashOption(
+            description=t("PalguardCog", "whitelistget.server_description"), autocomplete=True
+        ),
+    ):
+        await interaction.response.defer(ephemeral=True)
+        server_info = await self.get_server_info(server)
+        if not server_info:
+            await interaction.followup.send(
+                t("PalguardCog", "whitelistget.server_not_found").format(server=server), ephemeral=True
+            )
+            return
+        response = await self.rcon_util.rcon_command(server_info, "whitelist_get")
+        await interaction.followup.send(f"{t('PalguardCog', 'whitelistget.whitelist')}\n{response}")
+        
+    @whitelistget.on_autocomplete("server")
     async def on_autocomplete_rcon(
         self, interaction: nextcord.Interaction, current: str
     ):
@@ -376,5 +491,9 @@ def setup(bot):
             cog.giveegg,
             cog.palguardhelp,
             cog.giverelic,
+            cog.whitelist,
+            cog.whitelistadd,
+            cog.whitelistremove,
+            cog.whitelistget,
         ]
     )

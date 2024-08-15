@@ -22,6 +22,9 @@ async def on_ready():
     print(f"Connected to {len(bot.guilds)} servers with {len(bot.users)} users.")
     print(f"Invite link: {nextcord.utils.oauth_url(bot.user.id)}")
     print(f"{bot.user} is ready! Created by koz")
+    
+    bot.loop.create_task(settings.run_whitelist_check(bot))
+    
     activity = nextcord.Activity(
         type=nextcord.ActivityType.playing, name=settings.bot_activity
     )
@@ -36,25 +39,7 @@ async def on_application_command_error(interaction, error):
 async def ping(ctx):
     await ctx.send(f"Pong! {round(bot.latency * 1000)}ms")
 
-def has_setup_function(module_name):
-    module_spec = importlib.util.find_spec(module_name)
-    if module_spec is None:
-        return False
-    module = importlib.util.module_from_spec(module_spec)
-    module_spec.loader.exec_module(module)
-    return hasattr(module, "setup")
-
-for entry in os.listdir("cogs"):
-    if entry.endswith(".py"):
-        module_name = f"cogs.{entry[:-3]}"
-        if has_setup_function(module_name):
-            bot.load_extension(module_name)
-    elif os.path.isdir(f"cogs/{entry}"):
-        for filename in os.listdir(f"cogs/{entry}"):
-            if filename.endswith(".py"):
-                module_name = f"cogs.{entry}.{filename[:-3]}"
-                if has_setup_function(module_name):
-                    bot.load_extension(module_name)
+settings.load_cogs(bot)
 
 if __name__ == "__main__":
     bot.run(settings.bot_token)

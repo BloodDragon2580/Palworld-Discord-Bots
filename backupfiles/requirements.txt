@@ -1,5 +1,0 @@
-nextcord==2.6.0
-python-dotenv==1.0.0
-gamercon-async==1.0.6
-pytz==2024.1
-steam==1.4.4

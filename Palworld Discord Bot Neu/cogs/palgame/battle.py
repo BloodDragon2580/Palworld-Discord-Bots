@@ -10,6 +10,7 @@ from utils.palgame import (
 )
 from utils.database import add_points
 import random
+from utils.errorhandling import restrict_command
 
 class BattleCog(commands.Cog):
     def __init__(self, bot):
@@ -22,27 +23,29 @@ class BattleCog(commands.Cog):
 
     async def pal_autocomplete(self, interaction: nextcord.Interaction, current: str):
         user_pals = await get_pals(str(interaction.user.id))
-        choices = [pal[0] for pal in user_pals if current.lower() in pal[0].lower()]
-        await interaction.response.send_autocomplete(choices)
+        top_pals = sorted(user_pals, key=lambda pal: pal[1], reverse=True)[:5]
+        choices = [pal[0] for pal in top_pals if current.lower() in pal[0].lower()]
+        await interaction.response.send_autocomplete(choices=choices)
 
     @nextcord.slash_command(
         name="battle",
         description="Engage your Pal in a battle to earn experience!",
         default_member_permissions=nextcord.Permissions(send_messages=True),
     )
+    @restrict_command()
     async def battle(
         self,
         interaction: nextcord.Interaction,
         pal_name: str = nextcord.SlashOption(description="Choose your Pal", autocomplete=True)
     ):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         user_id = str(interaction.user.id)
         user_pals = await get_pals(user_id)
         user_pal = next((pal for pal in user_pals if pal[0] == pal_name), None)
         if not user_pal:
             embed = nextcord.Embed(title="Error", description="Pal not found.", color=nextcord.Color.red())
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed)
             return
 
         pal_data = next((pal for pal in self.pals if pal['Name'] == pal_name), None)
@@ -59,7 +62,7 @@ class BattleCog(commands.Cog):
         embed.add_field(name=f"{pal_name} Stats", value=self.format_stats(pal_data, user_pal_stats[0]), inline=False)
         embed.add_field(name=f"{opponent_pal['Name']} Stats", value=self.format_stats(opponent_pal), inline=False)
         embed.set_thumbnail(url=opponent_pal['WikiImage'])
-        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view)
 
     def format_stats(self, pal, level=1):
         stats = pal['Stats']
@@ -82,7 +85,7 @@ class BattleCog(commands.Cog):
 
     async def skill_callback(self, interaction, user, opponent_pal, skill, pal_data, level, experience, user_hp, opponent_hp, user_stamina, opponent_stamina):
         if user_stamina <= 0:
-            await interaction.response.send_message(f"{pal_data['Name']} is too exhausted to use {skill['Name']}! You need to rest.", ephemeral=True)
+            await interaction.response.send_message(f"{pal_data['Name']} is too exhausted to use {skill['Name']}! You need to rest.")
             return
 
         damage = self.calculate_damage(skill['Power'], 'Melee', user_pal=pal_data, opponent_pal=opponent_pal)
@@ -91,23 +94,37 @@ class BattleCog(commands.Cog):
 
         result_text = f"{pal_data['Name']} used {skill['Name']}! It dealt {damage} damage. {opponent_pal['Name']} has {opponent_hp} HP left."
 
+        new_experience = experience
+
         if opponent_hp <= 0:
             result_text += f"\n{opponent_pal['Name']} has been defeated!"
 
-            experience_gained = 50
-            new_experience = experience + experience_gained
+            base_experience = 50
+            rarity_multiplier = opponent_pal.get('Rarity', 1)
+            experience_gained = base_experience * rarity_multiplier
+            new_experience += experience_gained
             result_text += f"\n{pal_data['Name']} gained {experience_gained} experience points."
 
+            required_experience = 1000 + (level - 1) * 200
+
             leveled_up = False
-            if new_experience >= 1000:
-                await level_up(str(interaction.user.id), pal_data['Name'])
-                new_experience -= 1000
-                result_text += f"\n{pal_data['Name']} leveled up!"
+            while new_experience >= required_experience:
+                level += 1
+                new_experience -= required_experience
+                required_experience = 1000 + (level - 1) * 200
                 leveled_up = True
 
             await add_experience(str(interaction.user.id), pal_data['Name'], experience_gained)
+            if leveled_up:
+                await level_up(str(interaction.user.id), pal_data['Name'])
 
-            points_awarded = random.randint(10, 20)
+            if leveled_up:
+                result_text += f"\n{pal_data['Name']} leveled up to Level {level}!"
+            else:
+                result_text += f"\n{pal_data['Name']} is still at Level {level}."
+
+            base_points = random.randint(10, 20)
+            points_awarded = int(base_points * rarity_multiplier)
             await add_points(str(interaction.user.id), user.name, points_awarded)
             result_text += f"\nYou earned {points_awarded} points for winning the battle!"
 
@@ -129,7 +146,7 @@ class BattleCog(commands.Cog):
             return
 
         embed = nextcord.Embed(title="Battle Update", description=result_text, color=nextcord.Color.orange())
-        view = self.create_battle_view(pal_data, user, opponent_pal, level, experience, user_hp, opponent_hp, user_stamina, opponent_stamina)
+        view = self.create_battle_view(pal_data, user, opponent_pal, level, new_experience, user_hp, opponent_hp, user_stamina, opponent_stamina)
         await interaction.response.edit_message(embed=embed, view=view)
 
     def calculate_damage(self, skill_power, attack_type, user_pal, opponent_pal):
@@ -143,4 +160,13 @@ class BattleCog(commands.Cog):
         await self.pal_autocomplete(interaction, current)
 
 def setup(bot):
-    bot.add_cog(BattleCog(bot))
+    cog = BattleCog(bot)
+    bot.add_cog(cog)
+    
+    if not hasattr(bot, "all_slash_commands"):
+        bot.all_slash_commands = []
+    bot.all_slash_commands.extend(
+        [
+            cog.battle,
+        ]
+    )

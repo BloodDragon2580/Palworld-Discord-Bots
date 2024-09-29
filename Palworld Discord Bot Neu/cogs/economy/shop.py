@@ -16,6 +16,7 @@ import utils.constants as constants
 import json
 from utils.translations import t
 from utils.errorhandling import restrict_command
+import logging
 
 class ShopView(View):
     def __init__(self, shop_items, currency, cog, selected_server):
@@ -127,6 +128,7 @@ class ShopCog(commands.Cog):
         return None
 
     @nextcord.slash_command(name="shop", description=t("ShopCog", "shop.description"))
+    @restrict_command()
     async def shop(self, interaction: nextcord.Interaction, server: str = nextcord.SlashOption(description=t("ShopCog", "shop.server_description"), autocomplete=True)):
         view = ShopView(self.shop_items, self.currency, self, server)
         embed = await view.generate_shop_embed()
@@ -194,6 +196,9 @@ class ShopCog(commands.Cog):
             ),
             color=nextcord.Color.green(),
         )
+        
+        logging.info(f"User {user_name} (ID: {user_id}) purchased {item_name} for {item['price']} {self.currency} on server {server}. Remaining points: {new_points}")
+        
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 def setup(bot):

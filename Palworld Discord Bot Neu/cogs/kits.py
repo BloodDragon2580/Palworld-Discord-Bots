@@ -8,10 +8,12 @@ from utils.kitutility import (
     autocomplete_kits,
     save_kit,
     delete_kit,
+    fetch_all_kits,
     KitModal
 )
 import json
 import asyncio
+import os
 from utils.translations import t
 from utils.errorhandling import restrict_command
 
@@ -27,7 +29,7 @@ class KitsCog(commands.Cog):
         self.servers = await server_autocomplete()
 
     async def autocomplete_server(self, interaction: nextcord.Interaction, current: str):
-        choices = [server for server in self.servers if current.lower() in server.lower()][:25]
+        choices = [server for server in self.servers if current.lower() in server.lower()][:10]
         await interaction.response.send_autocomplete(choices)
 
     async def get_server_info(self, server_name: str):
@@ -41,7 +43,12 @@ class KitsCog(commands.Cog):
             }
         return None
 
-    @nextcord.slash_command(name="kit", description=t("KitsCog", "givekit.description"), default_member_permissions=nextcord.Permissions(administrator=True))
+    @nextcord.slash_command(
+        name="kit",
+        description=t("KitsCog", "givekit.description"),
+        default_member_permissions=nextcord.Permissions(administrator=True),
+        dm_permission=False
+    )
     @restrict_command()
     async def givekit(self, interaction: nextcord.Interaction, steamid: str, kit_name: str, server: str):
         await interaction.response.defer(ephemeral=True)
@@ -76,14 +83,25 @@ class KitsCog(commands.Cog):
 
     @givekit.on_autocomplete("server")
     async def on_autocomplete_rcon(self, interaction: nextcord.Interaction, current: str):
+        if interaction.guild is None:
+            return []
+        
         await self.autocomplete_server(interaction, current)
 
     @givekit.on_autocomplete("kit_name")
     async def on_autocomplete_kits(self, interaction: nextcord.Interaction, current: str):
+        if interaction.guild is None:
+            return []
+        
         choices = await autocomplete_kits(current)
-        await interaction.response.send_autocomplete(choices)
+        await interaction.response.send_autocomplete(choices[:10])
 
-    @nextcord.slash_command(name="managekits", description=t("KitsCog", "manage_kits.description"), default_member_permissions=nextcord.Permissions(administrator=True))
+    @nextcord.slash_command(
+        name="managekits",
+        description=t("KitsCog", "manage_kits.description"),
+        default_member_permissions=nextcord.Permissions(administrator=True),
+        dm_permission=False
+    )
     @restrict_command()
     async def manage_kits(self, interaction: nextcord.Interaction, kit_name: str = ""):
         try:
@@ -100,23 +118,40 @@ class KitsCog(commands.Cog):
             
     @manage_kits.on_autocomplete("kit_name")
     async def on_autocomplete_kits(self, interaction: nextcord.Interaction, current: str):
-        choices = await autocomplete_kits(current)
-        await interaction.response.send_autocomplete(choices[:25])
+        if interaction.guild is None:
+            return[]
 
-    @nextcord.slash_command(name="deletekit", description=t("KitsCog", "delete_kit.description"), default_member_permissions=nextcord.Permissions(administrator=True))
+        choices = await autocomplete_kits(current)
+        await interaction.response.send_autocomplete(choices[:10])
+
+    @nextcord.slash_command(
+        name="deletekit",
+        description=t("KitsCog", "delete_kit.description"),
+        default_member_permissions=nextcord.Permissions(administrator=True),
+        dm_permission=False
+    )
     @restrict_command()
     async def delete_kit(self, interaction: nextcord.Interaction, kit_name: str):
         await interaction.response.defer(ephemeral=True)
         
         await delete_kit(kit_name)
+        await self.bot.get_cog('ShopCog').load_shop_items()
         await interaction.followup.send(t("KitsCog", "delete_kit.success").format(kit_name=kit_name), ephemeral=True)
 
     @delete_kit.on_autocomplete("kit_name")
     async def on_autocomplete_kits(self, interaction: nextcord.Interaction, current: str):
-        choices = await autocomplete_kits(current)
-        await interaction.response.send_autocomplete(choices[:25])
+        if interaction.guild is None:
+            return[]
 
-    @nextcord.slash_command(name="uploadkits", description=t("KitsCog", "uploadkits.description"), default_member_permissions=nextcord.Permissions(administrator=True))
+        choices = await autocomplete_kits(current)
+        await interaction.response.send_autocomplete(choices[:10])
+
+    @nextcord.slash_command(
+        name="uploadkits",
+        description=t("KitsCog", "uploadkits.description"),
+        default_member_permissions=nextcord.Permissions(administrator=True),
+        dm_permission=False
+    )
     @restrict_command()
     async def uploadkits(self, interaction: nextcord.Interaction, json_file: nextcord.Attachment):
         await interaction.response.defer(ephemeral=True)
@@ -135,10 +170,50 @@ class KitsCog(commands.Cog):
                 price = kit_data.get('price', 0)
 
                 await save_kit(kit_name, commands, description, price)
+                
+            await self.bot.get_cog('ShopCog').load_shop_items()
 
             await interaction.followup.send(t("KitsCog", "uploadkits.success"), ephemeral=True)
         except Exception as e:
             await interaction.followup.send(t("KitsCog", "uploadkits.error").format(error=e), ephemeral=True)
+
+    @nextcord.slash_command(
+        name="exportkits",
+        description="Export all kits as a JSON file.",
+        default_member_permissions=nextcord.Permissions(administrator=True),
+        dm_permission=False
+    )
+    @restrict_command()
+    async def exportkits(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            kits = await fetch_all_kits()
+            if not kits:
+                await interaction.followup.send("No kits found to export.", ephemeral=True)
+                return
+
+            kits_data = {
+                kit[0]: {
+                    'commands': json.loads(kit[1]),
+                    'description': kit[2],
+                    'price': kit[3]
+                } for kit in kits
+            }
+
+            kits_json = json.dumps(kits_data, indent=4)
+            file_path = "kits_exported.json"
+
+            with open(file_path, "w") as file:
+                file.write(kits_json)
+
+            await interaction.followup.send(file=nextcord.File(file_path), ephemeral=True)
+            os.remove(file_path)
+
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred while exporting kits: {str(e)}", ephemeral=True)
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
 def setup(bot):
     cog = KitsCog(bot)
@@ -150,6 +225,7 @@ def setup(bot):
             cog.givekit,
             cog.manage_kits,
             cog.delete_kit,
-            cog.uploadkits
+            cog.uploadkits,
+            cog.exportkits
         ]
     )

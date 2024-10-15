@@ -283,6 +283,15 @@
         }
     },
     "PalguardCog": {
+        "description": {
+            "userid": "Die ID des Benutzers, dem der Gegenstand gegeben wird.",
+            "amount": "Die Menge des Gegenstands.",
+            "server": "Wählen Sie einen Server.",
+            "itemid": "Wählen Sie einen Gegenstand zum Geben.",
+            "palid": "Wählen Sie einen Pal zum Geben.",
+            "level": "Level des Pals.",
+            "eggid": "Wählen Sie ein Ei zum Geben."
+        },
         "reloadcfg": {
             "description": "Server-Konfiguration neu laden.",
             "server_not_found": "Server {server} nicht gefunden.",
@@ -292,34 +301,34 @@
             "description": "Gib einem Spieler einen Pal.",
             "server_not_found": "Server {server} nicht gefunden.",
             "pal_not_found": "Pal-ID nicht gefunden.",
-            "response": "Geben von {palid} an {steamid}.",
+            "response": "Geben von {palid} an {steamid}.\nPalcon: {response}",
             "title": "Palguard Pal - {server}"
         },
         "giveitem": {
             "description": "Gib einem Spieler einen Gegenstand.",
             "server_not_found": "Server {server} nicht gefunden.",
             "item_not_found": "Gegenstand-ID nicht gefunden.",
-            "response": "Geben von {itemid} an {steamid}.",
+            "response": "Geben von {itemid} an {steamid}.\nPalcon: {response}",
             "title": "Palguard Item - {server}"
         },
         "delitem": {
             "description": "Lösche einen Gegenstand bei einem Spieler.",
             "server_not_found": "Server {server} nicht gefunden.",
             "item_not_found": "Gegenstand-ID nicht gefunden.",
-            "response": "Löschen von {itemid}x{amount} bei {steamid}.",
+            "response": "Löschen von {itemid}x{amount} bei {steamid}.\nPalcon: {response}",
             "title": "Palguard Item - {server}"
         },
         "giveexp": {
             "description": "Gib einem Spieler Erfahrung.",
             "server_not_found": "Server {server} nicht gefunden.",
-            "response": "Geben von {amount} Erfahrung an {steamid}.",
+            "response": "Geben von {amount} Erfahrung an {steamid}.\nPalcon: {response}",
             "title": "Palguard Erfahrung - {server}"
         },
         "giveegg": {
             "description": "Gib einem Spieler ein Ei.",
             "server_not_found": "Server {server} nicht gefunden.",
             "egg_not_found": "Ei-ID nicht gefunden.",
-            "response": "Geben von {eggid} an {steamid}.",
+            "response": "Geben von {eggid} an {steamid}.\nPalcon: {response}",
             "title": "Palguard Ei - {server}"
         },
         "palguardhelp": {
@@ -329,7 +338,7 @@
         "giverelic": {
             "description": "Gib einem Spieler ein Lifmunk-Effigy Relikt.",
             "server_not_found": "Server {server} nicht gefunden.",
-            "response": "Geben von {amount} Lifmunk-Effigy Relikten an {steamid}.",
+            "response": "Geben von {amount} Lifmunk-Effigy Relikten an {steamid}.\nPalcon: {response}",
             "title": "Palguard Relikt - {server}"
         },
         "whitelistadd": {
@@ -367,7 +376,9 @@
             "description": "Übertrage Punkte an einen anderen Benutzer.",
             "title": "{currency} Übertragung",
             "insufficient_funds": "Du hast nicht genügend {currency}, um zu übertragen.",
-            "transfer_success": "{points} {currency} wurden an {recipient_name} übertragen."
+            "transfer_success": "{points} {currency} wurden an {recipient_name} übertragen.",
+            "transfer_error": "Du kannst keine Punkte an dich selbst überweisen.",
+            "invalid_amount": "Ungültiger Betrag. Bitte gib eine Zahl größer als 0 ein."
         },
         "balance": {
             "description": "Überprüfe deine eigenen Punkte.",
@@ -398,7 +409,7 @@
         "work": {
             "description": "Verdiene Punkte durch Arbeiten.",
             "title": "Arbeiten",
-            "cooldown_message": "Du arbeitest zu schnell. Bitte mache eine Pause."
+            "cooldown_message": "Du hast bereits gearbeitet. Bitte warte {remaining_time}."
         },
         "daily": {
             "description": "Fordere deine täglichen Punkte an.",
@@ -472,7 +483,8 @@
                 "error_item_not_found": "Artikel nicht gefunden.",
                 "error_not_enough_points": "Du hast nicht genügend {currency}, um diesen Artikel einzulösen.",
                 "success_title": "Eingelöst {item_name}",
-                "success_description": "Erfolgreich {item_name} für {item_price} {currency} auf Server {server} eingelöst. Du hast jetzt noch {remaining_points} {currency} übrig."
+                "success_description": "Erfolgreich {item_name} für {item_price} {currency} auf Server {server} eingelöst. Du hast jetzt noch {remaining_points} {currency} übrig.",
+                "error_user_not_found": "Benutzer {user_name} konnte auf dem Server nicht gefunden werden. Ihre Punkte wurden zurückerstattet."
             }
         }
     },

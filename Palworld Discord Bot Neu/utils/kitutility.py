@@ -42,6 +42,12 @@ async def autocomplete_kits(current: str):
         kits = await cursor.fetchall()
     return [kit[0] for kit in kits]
 
+async def fetch_all_kits():
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        cursor = await db.execute('SELECT name, commands, description, price FROM kits')
+        kits = await cursor.fetchall()
+    return kits
+
 async def load_shop_items():
     shop_items = {}
     async with aiosqlite.connect(DATABASE_PATH) as db:
@@ -71,4 +77,7 @@ class KitModal(nextcord.ui.Modal):
         price = self.children[3].value
 
         await save_kit(kit_name, commands, description, price)
+        
+        await interaction.client.get_cog('ShopCog').load_shop_items()
+        
         await interaction.response.send_message(t("Modals", "kitmodal.success_message").format(kit_name=kit_name), ephemeral=True)

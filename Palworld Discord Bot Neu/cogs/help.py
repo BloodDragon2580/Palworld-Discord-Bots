@@ -36,7 +36,7 @@ class HelpView(View):
 
         for cmd_path, command in commands_with_paths[start:end]:
             embed.add_field(
-                name=f"/{cmd_path}",
+                name=f"`/{cmd_path}`",
                 value=command.description or "No description",
                 inline=True,
             )
@@ -79,6 +79,7 @@ class HelpCog(commands.Cog):
             logging.error(f"Error in help command: {e}")
 
     # Please do not remove the about me section. I've spent a lot of time on this bot and I would appreciate it if you left it in.
+    # This is kept free and open source for a reason, respect my copyright.
     @nextcord.slash_command(description="Information about the Palworld bot.")
     async def about(self, interaction: nextcord.Interaction):
         

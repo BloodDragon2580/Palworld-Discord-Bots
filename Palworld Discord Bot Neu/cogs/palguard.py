@@ -36,15 +36,11 @@ class PalguardCog(commands.Cog):
         with open(eggs_path, "r", encoding="utf-8") as eggs_file:
             self.eggs = json.load(eggs_file)["eggs"]
 
-    async def autocomplete_server(
-        self, interaction: nextcord.Interaction, current: str
-    ):
+    async def autocomplete_server(self, interaction: nextcord.Interaction, current: str):
         if interaction.guild is None:
-            return[]
-        
-        choices = [
-            server for server in self.servers if current.lower() in server.lower()
-        ]
+            return []
+        server_names = await server_autocomplete()
+        choices = [server for server in server_names if current.lower() in server.lower()][:25]
         await interaction.response.send_autocomplete(choices)
 
     async def autocomplete_palid(self, interaction: nextcord.Interaction, current: str):
@@ -391,6 +387,38 @@ class PalguardCog(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     @giverelic.on_autocomplete("server")
+    async def on_autocomplete_rcon(
+        self, interaction: nextcord.Interaction, current: str
+    ):
+        await self.autocomplete_server(interaction, current)
+
+    @palguard.subcommand(description=t("PalguardCog", "deletepals.description"))
+    @restrict_command()
+    async def deletepals(
+        self,
+        interaction: nextcord.Interaction,
+        steamid: str = nextcord.SlashOption(description=t("PalguardCog", "description.userid")),
+        palfilter: str = nextcord.SlashOption(description=t("PalguardCog", "description.palfilter")),
+        server: str = nextcord.SlashOption(
+            description=t("PalguardCog", "description.server"), autocomplete=True
+        ),
+    ):
+        await interaction.response.defer(ephemeral=True)
+        server_info = await self.get_server_info(server)
+        if not server_info:
+            await interaction.followup.send(
+                t("PalguardCog", "deletepals.server_not_found").format(server=server), ephemeral=True
+            )
+            return
+        response = await self.rcon_util.rcon_command(server_info, f"deletepals {steamid} {palfilter}")
+        embed = nextcord.Embed(
+            title=t("PalguardCog", "deletepals.title").format(server=server),
+            description=t("PalguardCog", "deletepals.response").format(response=response),
+            color=nextcord.Color.blurple()
+        )
+        await interaction.followup.send(embed=embed)
+        
+    @deletepals.on_autocomplete("server")
     async def on_autocomplete_rcon(
         self, interaction: nextcord.Interaction, current: str
     ):

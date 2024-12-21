@@ -151,6 +151,11 @@
             "description": "Eliminar un servidor del bot.",
             "success": "Servidor '{server_name}' eliminado exitosamente.",
             "failed": "No se pudo eliminar el servidor. Puede que no exista."
+        },
+        "editserver": {
+            "description": "Editar la configuración de un servidor.",
+            "notfound": "Servidor '{server_name}' no encontrado.",
+            "success": "Servidor '{server_name}' agregado exitosamente."
         }
     },
     "QueryCog": {
@@ -290,7 +295,8 @@
             "itemid": "Selecciona un objeto para dar.",
             "palid": "Selecciona un Pal para dar.",
             "level": "Nivel del Pal.",
-            "eggid": "Selecciona un huevo para dar."
+            "eggid": "Selecciona un huevo para dar.",
+            "palfilter": "Filtrar palabras clave para la eliminación de Pals."
         },
         "reloadcfg": {
             "description": "Recargar la configuración del servidor.",
@@ -303,6 +309,12 @@
             "pal_not_found": "ID de Pal no encontrado.",
             "response": "Dando {palid} a {steamid}.\nPalcon: {response}",
             "title": "Palguard Pal - {server}"
+        },
+        "deletepals": {
+            "description": "Eliminar Pals de un jugador.",
+            "server_not_found": "Servidor {server} no encontrado.",
+            "response": "Palcon: {response}",
+            "title": "Palguard Eliminar Pals - {server}"
         },
         "giveitem": {
             "description": "Dar un objeto a un jugador.",

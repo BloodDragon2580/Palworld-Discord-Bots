@@ -1,6 +1,6 @@
 FOOTER_IMAGE = "https://i.ibb.co/wYj1j7P/T-Umihebi-Fire-icon-normal.png"
 FOOTER_TEXT = "Created by BloodDragon"
-TITLE_URL = "https://discord.gg/legion-des-chaos"
+TITLE_URL = "http://discord.gaming-nexus.de"
 PALBOT_VERSION = "v0.3.8"
 PALBOT_ART = r"""
 __________        .__ ___.           __   

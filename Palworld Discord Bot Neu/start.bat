@@ -1,3 +1,3 @@
 @echo off
-python C:\palbot\main.py %*
+python C:\PalworldDiscordBot\startup.py %*
 pause

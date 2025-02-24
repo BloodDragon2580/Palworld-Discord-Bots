@@ -518,11 +518,11 @@
     },
     "VoteCog": {
         "vote": {
-            "description": "Reclama tu recompensa por votar.",
-            "invalid_steam": "Tu Steam ID no está vinculada.",
-            "vote_success": "¡Gracias por votar! Tu recompensa de {self.vote_reward} {self.currency} ha sido reclamada.",
-            "vote_claimed": "Ya has reclamado tu recompensa.",
-            "vote_error": "O no has votado en las últimas 12 horas o ya reclamaste tu recompensa."
+            "description": "Fordern Sie Ihre Belohnung für die Stimmabgabe an.",
+            "invalid_steam": "Ihre Steam-ID ist nicht verknüpft.",
+            "vote_success": "Vielen Dank für Ihre Bewertung!  Ihre {self.vote_reward} {self.currency}-Belohnung wurde eingefordert.",
+            "vote_claimed": "Sie haben bereits Anspruch erhoben",
+            "vote_error": "Entweder haben Sie in den letzten 12 Stunden nicht abgestimmt oder Sie haben Ihre Belohnung bereits eingefordert."
         }
     }
 }
